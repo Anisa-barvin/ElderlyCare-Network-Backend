@@ -1,0 +1,25 @@
+// const express = require("express");
+// const router = express.Router();
+// const auth = require("../middleware/authMiddleware");
+// const {
+//   sendMessage,
+//   getMessages,
+// } = require("../controllers/messageController");
+
+// router.post("/", auth, sendMessage);
+// router.get("/:userId", auth, getMessages);
+
+// module.exports = router;
+
+const express = require("express");
+const router = express.Router();
+const auth = require("../middleware/authMiddleware");
+const {
+  sendMessage,
+  getChat,
+} = require("../controllers/messageController");
+
+router.post("/", auth, sendMessage);
+router.get("/:userId", auth, getChat);
+
+module.exports = router;
