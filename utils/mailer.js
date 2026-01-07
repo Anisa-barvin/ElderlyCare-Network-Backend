@@ -6,9 +6,9 @@ exports.sendOtpMail = async (to, otp) => {
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: {
-          name: "Companion+",
-          email: process.env.FROM_EMAIL,
-        },
+  name: "Companion+",
+  email: process.env.BREVO_SENDER_EMAIL,
+},
         to: [{ email: to }],
         subject: "Verify your email",
         htmlContent: `
