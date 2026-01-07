@@ -1,27 +1,37 @@
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false, // MUST be false for port 587
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const axios = require("axios");
 
 exports.sendOtpMail = async (to, otp) => {
   try {
-    await transporter.sendMail({
-      from: `"Companion+" <${process.env.FROM_EMAIL}>`,
-      to,
-      subject: "Verify your email",
-      text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-    });
+    await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "Companion+",
+          email: process.env.FROM_EMAIL,
+        },
+        to: [{ email: to }],
+        subject: "Verify your email",
+        htmlContent: `
+          <h2>Email Verification</h2>
+          <p>Your OTP is:</p>
+          <h1>${otp}</h1>
+          <p>This OTP will expire in 10 minutes.</p>
+        `,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    console.log("✅ OTP Email sent successfully");
+    console.log("✅ OTP email sent via Brevo API");
   } catch (error) {
-    console.error("❌ MAIL ERROR:", error.message);
+    console.error(
+      "❌ Brevo API Mail Error:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
