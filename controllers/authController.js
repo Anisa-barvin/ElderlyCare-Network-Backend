@@ -55,6 +55,43 @@ const jwt = require('jsonwebtoken');
 const { generateOtp } = require("../utils/generateOtp");
 const { sendOtpMail } = require("../utils/mailer");
 
+// exports.register = async (req, res) => {
+//   try {
+//     const { name, email, password, role, age, gender, phone, address } = req.body;
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser)
+//       return res.status(400).json({ message: "User already exists" });
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     const otp = generateOtp();
+
+//     const user = new User({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       role,
+//       age,
+//       gender,
+//       phone,
+//       address,
+//       emailOtp: otp,
+//       otpExpiry: Date.now() + 10 * 60 * 1000,
+//       isEmailVerified: false,
+//     });
+
+//     await user.save();
+//     await sendOtpMail(email, otp);
+
+//     res.status(201).json({
+//       message: "Registered successfully. OTP sent to email.",
+//     });
+
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role, age, gender, phone, address } = req.body;
@@ -64,7 +101,6 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const otp = generateOtp();
 
     const user = new User({
@@ -82,13 +118,22 @@ exports.register = async (req, res) => {
     });
 
     await user.save();
-    await sendOtpMail(email, otp);
+    console.log("✅ User saved");
 
-    res.status(201).json({
+    // 🟡 Email sending SHOULD NOT crash API
+    try {
+      await sendOtpMail(email, otp);
+      console.log("✅ OTP email sent");
+    } catch (emailError) {
+      console.error("❌ Email failed:", emailError.message);
+    }
+
+    return res.status(201).json({
       message: "Registered successfully. OTP sent to email.",
     });
 
   } catch (err) {
+    console.error("❌ Register error:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -131,46 +176,6 @@ exports.login = async (req, res) => {
 
 
 
-
-
-// exports.verifyOtp = async (req, res) => {
-//   try {
-//     const { email, otp } = req.body;
-
-//     const user = await User.findOne({ email });
-//     if (!user)
-//       return res.status(404).json({ message: "User not found" });
-
-//     if (user.emailOtp !== otp || user.otpExpiry < Date.now()) {
-//       return res.status(400).json({ message: "Invalid or expired OTP" });
-//     }
-
-//     user.isEmailVerified = true;
-//     user.emailOtp = undefined;
-//     user.otpExpiry = undefined;
-//     await user.save();
-
-//     // ✅ CREATE TOKEN
-//     const token = jwt.sign(
-//       { id: user._id, role: user.role },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "1d" }
-//     );
-
-//     res.json({
-//       message: "Email verified successfully",
-//       token,
-//       user: {
-//         id: user._id,
-//         name: user.name,
-//         role: user.role,
-//       },
-//     });
-
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
 
 
 exports.verifyOtp = async (req, res) => {
