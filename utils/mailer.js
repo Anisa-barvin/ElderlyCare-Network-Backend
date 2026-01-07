@@ -9,10 +9,18 @@ const transporter = nodemailer.createTransport({
 });
 
 exports.sendOtpMail = async (to, otp) => {
-  await transporter.sendMail({
-    from: `"Companion+" <${process.env.EMAIL}>`,
-    to,
-    subject: "Verify your email",
-    text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-  });
+  try {
+    await transporter.sendMail({
+      from: `"Companion+" <${process.env.EMAIL}>`,
+      to,
+      subject: "Verify your email",
+      text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+    });
+
+    console.log("✅ OTP MAIL SENT TO:", to);
+
+  } catch (err) {
+    console.error("❌ MAIL ERROR:", err);
+    throw err;
+  }
 };
